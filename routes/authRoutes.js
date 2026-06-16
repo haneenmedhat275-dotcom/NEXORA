@@ -34,4 +34,36 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// Login - تسجيل الدخول
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // نشوف هل اليوزر موجود
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid email or password' });
+    }
+
+    // نتحقق من الباسوورد
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid email or password' });
+    }
+
+    // نعمل token
+    const jwt = require('jsonwebtoken');
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.status(200).json({ token, role: user.role });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 module.exports = router;
