@@ -123,3 +123,19 @@ const questions = [
     modelAnswer: "A good answer shows genuine passion for the field and mentions an experience or moment that made you love programming. It explains how this aligns with your career goals."
   }
 ];
+const mongoose = require('mongoose');
+const Question = require('./models/question');
+require('dotenv').config();
+
+mongoose.connect(process.env.MONGO_URI)
+  .then(async () => {
+    console.log('✅ MongoDB connected');
+    await Question.deleteMany({});
+    await Question.insertMany(questions);
+    console.log('✅ 20 Questions added successfully');
+    process.exit();
+  })
+  .catch((err) => {
+    console.log('❌ Error:', err);
+    process.exit();
+  });

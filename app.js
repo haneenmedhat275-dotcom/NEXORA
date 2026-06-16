@@ -7,6 +7,8 @@ const authRoutes = require('./routes/authRoutes');  // ⬅️ سطر جديد
 const app = express();
 app.use(express.json());
 
+const interviewRoutes = require('./routes/interviewRoutes');
+app.use('/api/interview', interviewRoutes);
 // الاتصال بقاعدة البيانات
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connected'))
