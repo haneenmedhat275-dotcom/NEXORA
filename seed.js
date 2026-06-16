@@ -1,5 +1,8 @@
+const mongoose = require('mongoose');
+const Question = require('./models/question');
+require('dotenv').config();
+
 const questions = [
-  // Technical Questions
   {
     text: "What is an Array and what is the difference between an Array and an Object?",
     category: "technical",
@@ -60,8 +63,6 @@ const questions = [
     level: "advanced",
     modelAnswer: "A Design Pattern is a reusable solution to a common programming problem. Common types: Singleton ensures only one instance, Factory creates objects without specifying the class, Observer notifies other objects when changes occur."
   },
-
-  // Personal Questions
   {
     text: "How do you handle pressure and deadlines at work?",
     category: "personal",
@@ -123,9 +124,6 @@ const questions = [
     modelAnswer: "A good answer shows genuine passion for the field and mentions an experience or moment that made you love programming. It explains how this aligns with your career goals."
   }
 ];
-const mongoose = require('mongoose');
-const Question = require('./models/question');
-require('dotenv').config();
 
 mongoose.connect(process.env.MONGO_URI)
   .then(async () => {
