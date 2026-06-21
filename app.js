@@ -8,6 +8,11 @@ const interviewRoutes = require('./routes/interviewRoutes');
 const app = express();
 app.use(express.json());
 
+const answerRoutes = require('./routes/answerRoutes');
+app.use('/api/answer', answerRoutes);
+
+const resultRoutes = require('./routes/resultRoutes');
+app.use('/api/result', resultRoutes);
 // الاتصال بقاعدة البيانات
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connected'))
