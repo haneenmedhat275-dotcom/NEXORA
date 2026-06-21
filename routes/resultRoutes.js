@@ -85,5 +85,31 @@ router.get('/:interviewId', protect, async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
+// إحصائيات اليوزر
+router.get('/analytics', protect, async (req, res) => {
+  try {
+    const results = await Result.find({ user: req.user.id });
+
+    if (results.length === 0) {
+      return res.status(200).json({
+        totalInterviews: 0,
+        averageScore: 0,
+        averageTechnical: 0,
+        averagePersonal: 0
+      });
+    }
+
+    const totalInterviews = results.length;
+    const averageScore = results.reduce((sum, r) => sum + r.totalScore, 0) / totalInterviews;
+
+    res.status(200).json({
+      totalInterviews,
+      averageScore: Math.round(averageScore),
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
 
 module.exports = router;
