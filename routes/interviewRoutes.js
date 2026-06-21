@@ -59,5 +59,36 @@ router.get('/:id', protect, async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
+// إنهاء الانترفيو
+router.put('/complete/:id', protect, async (req, res) => {
+  try {
+    const interview = await Interview.findByIdAndUpdate(
+      req.params.id,
+      { status: 'completed', completedAt: new Date() },
+      { new: true }
+    );
 
+    if (!interview) {
+      return res.status(404).json({ message: 'Interview not found' });
+    }
+
+    res.status(200).json({ message: 'Interview completed successfully', interview });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// جيب كل انترفيوهات اليوزر
+router.get('/history', protect, async (req, res) => {
+  try {
+    const interviews = await Interview.find({ user: req.user.id })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(interviews);
+
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
 module.exports = router;
