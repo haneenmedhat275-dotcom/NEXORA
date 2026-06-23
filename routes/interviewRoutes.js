@@ -5,7 +5,7 @@ const Question = require('../models/question');
 const { protect } = require('../middleware/authMiddleware');
 
 // بدء انترفيو جديد
-router.post('/start', protect, async (req, res) => {
+router.post('/start', protect, async (req, res, next) => {
   try {
     const technicalQuestions = await Question.aggregate([
       { $match: { category: 'technical' } },
@@ -35,12 +35,12 @@ router.post('/start', protect, async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 });
 
 // جيب كل انترفيوهات اليوزر - لازم قبل /:id
-router.get('/history', protect, async (req, res) => {
+router.get('/history', protect, async (req, res, next) => {
   try {
     const interviews = await Interview.find({ user: req.user.id })
       .sort({ createdAt: -1 });
@@ -48,12 +48,12 @@ router.get('/history', protect, async (req, res) => {
     res.status(200).json(interviews);
 
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 });
 
 // إنهاء الانترفيو
-router.put('/complete/:id', protect, async (req, res) => {
+router.put('/complete/:id', protect, async (req, res, next) => {
   try {
     const interview = await Interview.findByIdAndUpdate(
       req.params.id,
@@ -68,12 +68,12 @@ router.put('/complete/:id', protect, async (req, res) => {
     res.status(200).json({ message: 'Interview completed successfully', interview });
 
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 });
 
 // جيب انترفيو معين - لازم بعد /history
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', protect, async (req, res, next) => {
   try {
     const interview = await Interview.findById(req.params.id)
       .populate('questions');
@@ -85,7 +85,7 @@ router.get('/:id', protect, async (req, res) => {
     res.status(200).json(interview);
 
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 });
 

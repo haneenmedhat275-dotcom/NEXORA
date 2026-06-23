@@ -7,7 +7,7 @@ const { protect } = require('../middleware/authMiddleware');
 const { evaluateAnswer } = require('../services/ai_services');
 
 // بعت إجابة على سؤال
-router.post('/submit', protect, async (req, res) => {
+router.post('/submit', protect, async (req, res, next) => {
   try {
     const { interviewId, questionId, answerText } = req.body;
 
@@ -44,7 +44,7 @@ router.post('/submit', protect, async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 });
 

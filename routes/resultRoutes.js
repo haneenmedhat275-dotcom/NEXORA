@@ -5,7 +5,7 @@ const Answer = require('../models/answer');
 const { protect } = require('../middleware/authMiddleware');
 
 // حساب النتيجة النهائية
-router.post('/calculate', protect, async (req, res) => {
+router.post('/calculate', protect, async (req, res, next) => {
   try {
     const { interviewId } = req.body;
 
@@ -66,27 +66,12 @@ router.post('/calculate', protect, async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 });
 
-// جيب نتيجة انترفيو معين
-router.get('/:interviewId', protect, async (req, res) => {
-  try {
-    const result = await Result.findOne({ interview: req.params.interviewId });
-
-    if (!result) {
-      return res.status(404).json({ message: 'Result not found' });
-    }
-
-    res.status(200).json(result);
-
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
 // إحصائيات اليوزر
-router.get('/analytics', protect, async (req, res) => {
+router.get('/analytics', protect, async (req, res, next) => {
   try {
     const results = await Result.find({ user: req.user.id });
 
@@ -108,7 +93,23 @@ router.get('/analytics', protect, async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
+  }
+});
+
+// جيب نتيجة انترفيو معين
+router.get('/:interviewId', protect, async (req, res, next) => {
+  try {
+    const result = await Result.findOne({ interview: req.params.interviewId });
+
+    if (!result) {
+      return res.status(404).json({ message: 'Result not found' });
+    }
+
+    res.status(200).json(result);
+
+  } catch (error) {
+    next(error);
   }
 });
 

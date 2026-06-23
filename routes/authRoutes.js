@@ -7,7 +7,7 @@ const User = require('../models/user');
 const sendEmail = require('../utils/sendEmail');
 
 // Register
-router.post('/register', async (req, res) => {
+router.post('/register', async (req, res, next) => {
   try {
     const { name, email, password, role } = req.body;
 
@@ -30,12 +30,12 @@ router.post('/register', async (req, res) => {
     res.status(201).json({ message: 'User registered successfully' });
 
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 });
 
 // Login
-router.post('/login', async (req, res) => {
+router.post('/login', async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -58,22 +58,22 @@ router.post('/login', async (req, res) => {
     res.status(200).json({ token, role: user.role });
 
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 });
 
 // Get Profile
-router.get('/profile', protect, async (req, res) => {
+router.get('/profile', protect, async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
     res.status(200).json(user);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 });
 
 // Forgot Password
-router.post('/forgot-password', async (req, res) => {
+router.post('/forgot-password', async (req, res, next) => {
   try {
     const { email } = req.body;
 
@@ -98,12 +98,12 @@ router.post('/forgot-password', async (req, res) => {
     res.status(200).json({ message: 'Reset email sent successfully' });
 
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 });
 
 // Reset Password
-router.post('/reset-password/:token', async (req, res) => {
+router.post('/reset-password/:token', async (req, res, next) => {
   try {
     const { password } = req.body;
 
@@ -115,7 +115,7 @@ router.post('/reset-password/:token', async (req, res) => {
     res.status(200).json({ message: 'Password reset successfully' });
 
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 });
 
