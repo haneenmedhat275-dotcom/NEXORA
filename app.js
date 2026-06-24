@@ -14,6 +14,8 @@ const answerRoutes = require('./routes/answerRoutes');
 const resultRoutes = require('./routes/resultRoutes');
 
 const app = express();
+const reportRoutes = require('./routes/reportRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
 
 // Security and parsing
 app.use(helmet());
@@ -26,11 +28,14 @@ connectDB();
 
 // Routes (use plural endpoints)
 app.use('/api/auth', authRoutes);
-app.use('/api/interview', interviewRoutes);
+app.use('/api/interviews', interviewRoutes);
 app.use('/api/answers', answerRoutes);
 app.use('/api/results', resultRoutes);
-
+//report routes
+app.use('/api/reports', reportRoutes);
 app.get('/', (req, res) => res.send('<h1>Hello from the server</h1>'));
+// Analytics routes
+app.use('/api/analytics', analyticsRoutes);
 
 // Centralized error handler (last middleware)
 app.use(errorHandler);
