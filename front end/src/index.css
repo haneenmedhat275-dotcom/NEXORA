@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@theme {
+  /* ===== Colors ===== */
+  --color-page-bg: #EEEEF8;
+  --color-page-secondary: #F0F1F3;
+  --color-card-bg: #FFFFFF;
+  --color-card-border: #E5E7EB;
+  --color-primary: #3A1078;
+  --color-primary-hover: #2D0C5E;
+  --color-primary-light: #F0EEFF;
+  --color-purple-primary: #3A1078;
+  --color-purple-light: #5B3291;
+  --color-purple-accent: #6B54AA;
+  --color-blue-primary: #363388;
+  --color-blue-light: #DCEEFF;
+  --color-text-primary: #1F2937;
+  --color-text-secondary: #6B7280;
+  --color-text-muted: #9CA3AF;
+  --color-text-dim: #D1D5DB;
+  --color-success: #4CAF50;
+  --color-warning: #FF9800;
+
+  --color-nexora-bg: #EEEEF8;
+  --color-nexora-dark: #0D0D1A;
+  --color-nexora-purple: #3A1078;
+  --color-nexora-purple-light: #E0D4F5;
+  --color-nexora-lavender: #E8E0F7;
+
+  /* ===== Font Family ===== */
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* ===== Container / Max-Width ===== */
+  --container-page: 1440px;
+  --container-content: 1200px;
+
+  /* ===== Spacing ===== */
+  --spacing-gutter: 32px;
+  --spacing-page-margin: 120px;
+
+  /* ===== Font Sizes (matching Figma) ===== */
+  --font-size-hero: 48px;
+  --font-size-hero--line-height: 72px;
+  --font-size-hero--font-weight: 800;
+
+  --font-size-h2: 30px;
+  --font-size-h2--line-height: 48px;
+  --font-size-h2--font-weight: 700;
+
+  --font-size-h3: 20px;
+  --font-size-h3--line-height: 32px;
+  --font-size-h3--font-weight: 600;
+
+  --font-size-very-small-caption: 10px;
+  --font-size-very-small-caption--line-height: 24px;
+
+  --font-size-interview-question: 18px;
+  --font-size-interview-question--line-height: 24px;
+
+  --font-size-caption: 14px;
+  --font-size-caption--line-height: 24px;
+
+  --font-size-body-lg: 16px;
+  --font-size-body-lg--line-height: 24px;
+
+  --font-size-body: 14px;
+  --font-size-body--line-height: 24px;
+
+  --font-size-small-caption: 12px;
+  --font-size-small-caption--line-height: 24px;
+
+  --font-size-btn-sm: 14px;
+  --font-size-btn-sm--line-height: 24px;
+
+  --font-size-btn-lg: 16px;
+  --font-size-btn-lg--line-height: 24px;
+}
+
+body {
+  margin: 0;
+  background: #EEEEF8;
+  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+*::-webkit-scrollbar { width: 6px; }
+*::-webkit-scrollbar-track { background: #EEEEF8; }
+*::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
