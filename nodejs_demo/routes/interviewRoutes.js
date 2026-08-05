@@ -4,7 +4,7 @@ const Interview = require('../models/interview');
 const Question = require('../models/question');
 const { protect } = require('../middleware/authMiddleware');
 
-// بدء انترفيو جديد
+// Start a new interview
 router.post('/start', protect, async (req, res, next) => {
   try {
     const technicalQuestions = await Question.aggregate([
@@ -39,20 +39,32 @@ router.post('/start', protect, async (req, res, next) => {
   }
 });
 
-// جيب كل انترفيوهات اليوزر - لازم قبل /:id
+// Get all user interviews - must be before /:id
 router.get('/history', protect, async (req, res, next) => {
   try {
+    const Result = require('../models/result');
+
     const interviews = await Interview.find({ user: req.user.id })
       .sort({ createdAt: -1 });
 
-    res.status(200).json(interviews);
+    // Fetch all user results at once and map them to each interview
+    const results = await Result.find({ user: req.user.id });
+    const resultsMap = {};
+    results.forEach(r => { resultsMap[r.interview.toString()] = r; });
+
+    const interviewsWithResults = interviews.map(iv => ({
+      ...iv.toObject(),
+      result: resultsMap[iv._id.toString()] || null,
+    }));
+
+    res.status(200).json(interviewsWithResults);
 
   } catch (error) {
     next(error);
   }
 });
 
-// إنهاء الانترفيو
+// Complete the interview
 router.put('/complete/:id', protect, async (req, res, next) => {
   try {
     const interview = await Interview.findByIdAndUpdate(
@@ -72,7 +84,7 @@ router.put('/complete/:id', protect, async (req, res, next) => {
   }
 });
 
-// جيب انترفيو معين - لازم بعد /history
+// Get a specific interview - must be after /history
 router.get('/:id', protect, async (req, res, next) => {
   try {
     const interview = await Interview.findById(req.params.id)

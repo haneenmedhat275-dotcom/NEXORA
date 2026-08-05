@@ -43,6 +43,15 @@ const fs = require('fs');
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
+const getAudioDuration = (filePath) => {
+  return new Promise((resolve, reject) => {
+    ffmpeg.ffprobe(filePath, (err, metadata) => {
+      if (err) return reject(err);
+      resolve(metadata.format.duration || 0);
+    });
+  });
+};
+
 const evaluateAnswerFromVideo = async (question, modelAnswer, videoPath) => {
   if (!genAI) {
     return { transcription: '', score: 5, comment: 'AI service not configured.' };
@@ -63,6 +72,8 @@ const evaluateAnswerFromVideo = async (question, modelAnswer, videoPath) => {
         .run();
     });
 
+    const durationSeconds = Math.round(await getAudioDuration(audioPath));
+
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     const audioBuffer = fs.readFileSync(audioPath);
@@ -75,11 +86,21 @@ Then, evaluate the answer based on this context:
 - Question: ${question}
 - Model answer: ${modelAnswer}
 
+Also analyze the vocal delivery: identify the speaker's tone (confident/neutral/hesitant/monotone/enthusiastic),
+clarity (clear/moderate/unclear/muffled), and estimate the number of noticeable pauses in speech.
+
 Return ONLY valid JSON (no markdown, no code blocks):
 {
   "transcription": "exact transcription here",
   "score": 0-10,
-  "comment": "short feedback"
+  "comment": "short feedback",
+  "strengths": ["..."],
+  "weaknesses": ["..."],
+  "speechMetrics": {
+    "tone": "confident|neutral|hesitant|monotone|enthusiastic",
+    "clarity": "clear|moderate|unclear|muffled",
+    "pauses": 0
+  }
 }`;
 
     const result = await model.generateContent([
@@ -91,18 +112,32 @@ Return ONLY valid JSON (no markdown, no code blocks):
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     const parsed = JSON.parse(jsonMatch[0]);
 
+    const transcription = String(parsed.transcription || '').trim();
+    const wordCount = transcription ? transcription.split(/\s+/).length : 0;
+    const wpm = durationSeconds > 0 ? Math.round(wordCount / (durationSeconds / 60)) : 0;
+    const metrics = parsed.speechMetrics || {};
+
     return {
-      transcription: String(parsed.transcription || '').trim(),
+      transcription,
       score: Math.max(0, Math.min(10, Math.round(Number(parsed.score)))),
-      comment: String(parsed.comment || '').trim()
+      comment: String(parsed.comment || '').trim(),
+      strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
+      weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses : [],
+      speechMetrics: {
+        durationSeconds,
+        wpm,
+        pauses: typeof metrics.pauses === 'number' ? metrics.pauses : 0,
+        tone: ['confident', 'neutral', 'hesitant', 'monotone', 'enthusiastic'].includes(metrics.tone) ? metrics.tone : 'neutral',
+        clarity: ['clear', 'moderate', 'unclear', 'muffled'].includes(metrics.clarity) ? metrics.clarity : 'moderate'
+      }
     };
 
   } catch (err) {
     console.error('Video AI error:', err.message);
     if (err.message?.includes('SAFETY')) {
-      return { transcription: '', score: 1, comment: 'Inappropriate content detected.' };
+      return { transcription: '', score: 1, comment: 'Inappropriate content detected.', strengths: [], weaknesses: [], speechMetrics: { durationSeconds: 0, wpm: 0, pauses: 0, tone: 'neutral', clarity: 'moderate' } };
     }
-    return { transcription: '', score: 5, comment: 'AI unavailable for video.', error: err.message };
+    return { transcription: '', score: 5, comment: 'AI unavailable for video.', error: err.message, strengths: [], weaknesses: [], speechMetrics: { durationSeconds: 0, wpm: 0, pauses: 0, tone: 'neutral', clarity: 'moderate' } };
   } finally {
     if (audioPath && fs.existsSync(audioPath)) {
       fs.unlinkSync(audioPath);

@@ -30,7 +30,9 @@ const answerSchema = new mongoose.Schema({
   speechMetrics: {
     durationSeconds: { type: Number },
     wpm: { type: Number },
-    pauses: { type: Number }
+    pauses: { type: Number },
+    tone: { type: String, enum: ['confident', 'neutral', 'hesitant', 'monotone', 'enthusiastic'] },
+    clarity: { type: String, enum: ['clear', 'moderate', 'unclear', 'muffled'] }
   }
 }, { timestamps: true });
 

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  // ✅ خطوة 1 - Basic Info
+  // Step 1 - Basic Info
   name: {
     type: String,
     required: true
@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
     type: Number
   },
 
-  // ✅ خطوة 2 - Complete Profile
+  // Step 2 - Complete Profile
   jobRole: {
     type: String
   },
@@ -39,12 +39,20 @@ const userSchema = new mongoose.Schema({
     type: String
   },
 
-  // ✅ خطوة 3 - Upload CV
+  // Step 3 - Upload CV
   cvUrl: {
     type: String
   },
+  cvOriginalName: {
+    type: String
+  },
 
-  // ✅ خطوة 4 - Finalize
+  // Profile photo
+  avatarUrl: {
+    type: String
+  },
+
+  // Step 4 - Finalize
   isOnboarded: {
     type: Boolean,
     default: false

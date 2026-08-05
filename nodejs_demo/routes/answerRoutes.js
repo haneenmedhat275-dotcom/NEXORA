@@ -1,51 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const Answer = require('../models/answer');
-const Interview = require('../models/interview');
-const Question = require('../models/question');
 const { protect } = require('../middleware/authMiddleware');
-const { evaluateAnswer } = require('../services/ai_services');
+const { audioUpload } = require('../utils/upload');
+const { submitAnswer, getAnswersByInterview, getMyAnswers } = require('../controllers/answercontroller');
 
-// بعت إجابة على سؤال
-router.post('/submit', protect, async (req, res, next) => {
-  try {
-    const { interviewId, questionId, answerText } = req.body;
-
-    // نجيب السؤال والإجابة النموذجية
-    const question = await Question.findById(questionId);
-    if (!question) {
-      return res.status(404).json({ message: 'Question not found' });
-    }
-
-    // نبعت للـ AI يقيم الإجابة
-    const aiFeedback = await evaluateAnswer(
-      question.text,
-      answerText,
-      question.modelAnswer
-    );
-
-    // sanitize aiFeedback
-    aiFeedback.score = Number(aiFeedback.score) || 0;
-    aiFeedback.score = Math.max(0, Math.min(10, aiFeedback.score));
-
-    // نحفظ الإجابة مع التقييم
-    const answer = new Answer({
-      interview: interviewId,
-      question: questionId,
-      answerText,
-      aiFeedback
-    });
-
-    await answer.save();
-
-    res.status(201).json({
-      message: 'Answer submitted successfully',
-      aiFeedback
-    });
-
-  } catch (error) {
-    next(error);
-  }
-});
+router.post('/submit', protect, audioUpload.single('audio'), submitAnswer);
+router.get('/interview/:interviewId', protect, getAnswersByInterview);
+router.get('/my', protect, getMyAnswers);
 
 module.exports = router;

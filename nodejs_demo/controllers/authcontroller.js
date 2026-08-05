@@ -81,7 +81,7 @@ const forgotPassword = async (req, res, next) => {
       { expiresIn: '1h' }
     );
 
-    const resetLink = `http://localhost:3000/reset-password/${resetToken}`;
+    const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
     await sendEmail(
       email,
       'Reset Your Password',
@@ -104,13 +104,14 @@ const resetPassword = async (req, res, next) => {
 
     await User.findByIdAndUpdate(decoded.id, { password: hashedPassword });
 
-    res.status(200).json({ message: 'Password reset successfully' });
+    const newToken = jwt.sign({ id: decoded.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+
+    res.status(200).json({ message: 'Password reset successfully', token: newToken });
 
   } catch (error) {
     next(error);
   }
 };
-// ضيفها هنا قبل module.exports
 const updateProfile = async (req, res, next) => {
   try {
     const { age, yearsOfExperience, jobRole, skills, currentJobTitle } = req.body;
@@ -138,5 +139,4 @@ const updateProfile = async (req, res, next) => {
   }
 };
 
-// غير module.exports لكده
 module.exports = { register, login, getProfile, forgotPassword, resetPassword, updateProfile };
