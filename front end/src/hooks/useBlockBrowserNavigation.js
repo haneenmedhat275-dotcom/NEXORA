@@ -5,29 +5,29 @@ import { useNavigate } from 'react-router-dom'
  * useBlockBrowserNavigation
  * ==========================
  *
- * يمنع المستخدم من الرجوع للتلف أو التقدم للأمام  باستخدام أزرار Back/Forward
- * بتاعة المتصفح في صفحات الـ onboarding.
+ * Prevents the user from navigating Back/Forward using the browser buttons
+ * on onboarding pages.
  *
- * -------- الفكرة --------
- * مش بنستخدم pushState (عشان نتفادى تلويث الـ history stack). بداله:
- *   - على popstate (Back/Forward) بنعمل history.go(1) نرجع تاني
- *   - لو URL مطابق للاصلي، مبنعملش حاجة (عشان نتجنب الـ infinite loop)
- *   - beforeunload لو ضغط Refresh
+ * -------- Idea --------
+ * We don't use pushState (to avoid polluting the history stack). Instead:
+ *   - on popstate (Back/Forward) we call history.go(1) to push back
+ *   - if the URL matches the original, do nothing (avoid infinite loop)
+ *   - beforeunload to handle Refresh
  *
  * -------- goBack() --------
- * الـ hook بيديك goBack() عشان تستخدمه في زرار "Back" بتاع الصفحة:
- *   - blockedRef = false (يسيب الـ popstate القادم يعدي)
- *   - يعمل navigate(-1) من react-router
- *   - عادي يشتغل لأن مفيش pushState يزاحم
+ * The hook exposes goBack() for the page's Back button:
+ *   - blockedRef = false (lets the next popstate through)
+ *   - calls navigate(-1) from react-router
+ *   - works because no pushState interferes
  *
- * -------- Confirm اختياري --------
- *  const { goBack } = useBlockBrowserNavigation({ message: 'من فضلك أكمل الخطوات بالترتيب' })
- *  لو حطيت message، قبل ما يسمح بالخروج هيسأل window.confirm.
- *  لو المستخدم إختار Cancel، hook بيرجعه تاني للصفحة.
+ * -------- Optional confirm --------
+ *  const { goBack } = useBlockBrowserNavigation({ message: 'Please complete the steps in order' })
+ *  If you pass a message, it asks window.confirm before allowing exit.
+ *  If the user chooses Cancel, the hook pushes them back to the page.
  *
  * -------- StrictMode --------
- * الـ cleanup بيمسح الـ listeners ومفيش pushState يتراكم.
- * مفيش infinite loop ولا duplicate entries في الـ history.
+ * The cleanup removes the listeners and no pushState accumulates.
+ * No infinite loop and no duplicate entries in history.
  */
 
 export default function useBlockBrowserNavigation(options = {}) {
@@ -47,17 +47,17 @@ export default function useBlockBrowserNavigation(options = {}) {
 
       const newUrl = window.location.href
 
-      // لو الـ URL اتغير (المتصفح عمل Back/Forward) — نرجعه تاني
+      // If URL changed (browser Back/Forward) - push back
       if (newUrl !== url) {
         window.history.go(1)
       }
 
-      // اختياري: نسأل المستخدم
+      // Optional: ask the user
       if (message) {
         if (!window.confirm(message)) {
-          return // Cancel → نقعد مكاننا
+          return // Cancel -> stay
         }
-        // OK → نسمحله يخرج
+        // OK -> allow leaving
         blockedRef.current = false
         window.removeEventListener('popstate', popstateRef.current)
         window.removeEventListener('beforeunload', beforeunloadRef.current)

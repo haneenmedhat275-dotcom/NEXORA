@@ -7,22 +7,22 @@ import { Brain, Database, BadgeCheck, Check, ArrowRight } from "lucide-react";
 const stats = [
   {
     icon: Brain,
-    label: "VOICE MATCH",
-    value: "98.4% Accuracy",
+    label: "AI COACHING",
+    value: "Personalized insights based on your CV, answers, and growth trends.",
     iconBg: "#EFE9FE",
     iconColor: "#7C3AED",
   },
   {
     icon: Database,
     label: "KNOWLEDGE BASE",
-    value: "12k Context Points",
+    value: "12k+ interview questions across technical and behavioral tracks.",
     iconBg: "#E8ECFE",
     iconColor: "#4F46E5",
   },
   {
     icon: BadgeCheck,
-    label: "READY FOR ROLE",
-    value: "Senior Designer",
+    label: "ROLE READINESS",
+    value: "Your personalized roadmap to land your target role.",
     iconBg: "#FDF0E1",
     iconColor: "#D97706",
   },
@@ -40,7 +40,7 @@ function Success() {
       }}
     >
       <div className="flex-1 flex flex-col items-center w-full px-6 pt-16">
-        {/* اللوجو والـ Badge */}
+        {/* Logo and badge */}
         <div className="flex flex-col items-center mb-8">
           <img src={logo} alt="Nexora" className="h-9 mb-6" />
           <div
@@ -57,7 +57,7 @@ function Success() {
           </div>
         </div>
 
-        {/* الكارت الداكنة */}
+        {/* Dark card */}
         <div
           className="w-full mb-10 overflow-hidden relative"
           style={{
@@ -86,9 +86,12 @@ function Success() {
           </p>
         </div>
 
-        {/* زرار */}
+        {/* Button */}
         <button
-          onClick={() => navigate("/interview")}
+          onClick={() => {
+            localStorage.setItem("nexora_onboarding_completed", "true");
+            navigate("/dashboard");
+          }}
           className="bg-gray-900 text-white font-semibold text-base flex items-center gap-2 mb-14 transition-all cursor-pointer hover:bg-black"
           style={{
             padding: "16px 40px",
@@ -99,7 +102,7 @@ function Success() {
           <ArrowRight size={16} />
         </button>
 
-        {/* الـ 3 Stats */}
+        {/* 3 Stats */}
         <div
           className="grid grid-cols-3 gap-4 mb-16 w-full"
           style={{ maxWidth: "900px" }}
@@ -118,13 +121,13 @@ function Success() {
               <p className="text-xs text-gray-400 font-semibold tracking-widest mb-2">
                 {stat.label}
               </p>
-              <p className="font-bold text-gray-900 text-xl">{stat.value}</p>
+              <p className="font-medium text-gray-700 text-sm leading-relaxed">{stat.value}</p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* الـ Footer */}
+      {/* Footer */}
       <footer className="w-full bg-white border-t border-gray-100 px-12 py-8 flex items-center justify-between">
         <div>
           <img src={logo} alt="Nexora" className="h-7 mb-2" />

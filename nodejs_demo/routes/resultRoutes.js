@@ -4,12 +4,12 @@ const Result = require('../models/result');
 const Answer = require('../models/answer');
 const { protect } = require('../middleware/authMiddleware');
 
-// حساب النتيجة النهائية
+// Calculate final result
 router.post('/calculate', protect, async (req, res, next) => {
   try {
     const { interviewId } = req.body;
 
-    // نجيب كل إجابات الانترفيو
+    // Fetch all answers for the interview
     const answers = await Answer.find({ interview: interviewId })
       .populate('question');
 
@@ -17,7 +17,7 @@ router.post('/calculate', protect, async (req, res, next) => {
       return res.status(404).json({ message: 'No answers found' });
     }
 
-    // نحسب الدرجات
+    // Calculate scores
     let technicalScore = 0;
     let personalScore = 0;
     let technicalCount = 0;
@@ -36,7 +36,7 @@ router.post('/calculate', protect, async (req, res, next) => {
     const totalScore = technicalScore + personalScore;
     const maxScore = answers.length * 10;
 
-    // نحدد الـ track المقترح
+    // Determine suggested track
     let recommendedTrack = '';
     if (technicalScore > personalScore) {
       recommendedTrack = 'Technical Track (Backend/Frontend Development)';
@@ -44,7 +44,7 @@ router.post('/calculate', protect, async (req, res, next) => {
       recommendedTrack = 'Soft Skills Track (Project Management/Business Analysis)';
     }
 
-    // نحفظ النتيجة
+    // Save result
     const result = new Result({
       interview: interviewId,
       user: req.user.id,
@@ -70,7 +70,7 @@ router.post('/calculate', protect, async (req, res, next) => {
   }
 });
 
-// إحصائيات اليوزر
+// User statistics
 router.get('/analytics', protect, async (req, res, next) => {
   try {
     const results = await Result.find({ user: req.user.id });
@@ -97,7 +97,7 @@ router.get('/analytics', protect, async (req, res, next) => {
   }
 });
 
-// جيب نتيجة انترفيو معين
+// Get result for a specific interview
 router.get('/:interviewId', protect, async (req, res, next) => {
   try {
     const result = await Result.findOne({ interview: req.params.interviewId });

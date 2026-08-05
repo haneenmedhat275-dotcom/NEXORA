@@ -33,7 +33,7 @@ function CareerPath() {
   return (
     <DashboardLayout currentStep={3}>
 
-      {/* العنوان */}
+      {/* Title */}
       <h1 className="text-3xl font-bold text-gray-900 mb-2">
         What do you want to build and improve?
       </h1>
@@ -87,7 +87,7 @@ function CareerPath() {
         ))}
       </div>
 
-      {/* زرار Next */}
+      {/* Next button */}
       <div className="flex justify-end mt-10">
         <button
   onClick={() => navigate("/success")}

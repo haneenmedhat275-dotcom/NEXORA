@@ -5,7 +5,7 @@ const Interview = require('../models/interview');
 const Answer = require('../models/answer');
 const { protect } = require('../middleware/authMiddleware');
 
-// جيب كل ريبورتس اليوزر
+// Get all user reports
 router.get('/', protect, async (req, res) => {
   try {
     const reports = await Report.find({ user: req.user.id })
@@ -17,7 +17,7 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
-// جيب ريبورت انترفيو معين
+// Get report for a specific interview
 router.get('/:interviewId', protect, async (req, res) => {
   try {
     const answers = await Answer.find({ interview: req.params.interviewId })
@@ -45,7 +45,7 @@ router.get('/:interviewId', protect, async (req, res) => {
   }
 });
 
-// اعمل ريبورت نهائي واحفظه
+// Generate and save a final report
 router.post('/generate/:interviewId', protect, async (req, res) => {
   try {
     const answers = await Answer.find({ interview: req.params.interviewId })

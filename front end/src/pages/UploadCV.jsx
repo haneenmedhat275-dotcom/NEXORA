@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileText, Upload, Shield, ArrowLeft, Loader } from "lucide-react";
 import DashboardLayout from "../layouts/DashboardLayout";
@@ -9,8 +9,22 @@ function UploadCV() {
   const navigate = useNavigate();
   const { goBack } = useBlockBrowserNavigation();
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const fileInputRef = useRef(null);
 
   const handleFile = async (file) => {
+    if (!file) return;
+    if (file.type !== "application/pdf") {
+      setError("Only PDF files are supported.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setError("File size exceeds 2MB.");
+      return;
+    }
+    setError("");
+    setSuccess("");
     setUploading(true);
     const formData = new FormData();
     formData.append("cv", file);
@@ -21,12 +35,18 @@ function UploadCV() {
       if (res.data.extractedInfo) {
         localStorage.setItem("nexora_cv_data", JSON.stringify(res.data.extractedInfo));
       }
+      setSuccess("CV uploaded successfully!");
     } catch (err) {
-      console.error("Upload error:", err);
+      setError(err.response?.data?.message || "Upload failed. Please try again.");
     } finally {
       setUploading(false);
       navigate("/verify");
     }
+  };
+
+  const handleSkip = () => {
+    localStorage.setItem("nexora_cv_skipped", "true");
+    navigate("/verify");
   };
 
   return (
@@ -49,21 +69,22 @@ function UploadCV() {
           </div>
 
           <h2 className="font-bold text-gray-900 text-xl mb-2">
-            {uploading ? "Processing your CV..." : "Drop your CV here or click to browse"}
+            {uploading ? "Processing your CV..." : "Drop your PDF here or click to browse"}
           </h2>
           <p className="text-gray-500 text-sm mb-1">
             AI-powered extraction will automatically fill your profile.
           </p>
           <p className="text-nexora-purple text-sm font-medium mb-6">
-            Supports PDF, DOCX, and TXT files.
+            Supports PDF files only. Max size: 2MB.
           </p>
 
           <label className={`${uploading ? "opacity-50 pointer-events-none" : ""} bg-gray-900 text-white px-8 py-3 rounded-xl font-medium flex items-center gap-2 cursor-pointer`}>
             {uploading ? <Loader size={18} className="animate-spin" /> : <Upload size={18} />}
             {uploading ? "Uploading..." : "Select File"}
             <input
+              ref={fileInputRef}
               type="file"
-              accept=".pdf,.docx,.txt"
+              accept=".pdf,application/pdf"
               className="hidden"
               disabled={uploading}
               onChange={(e) => {
@@ -72,6 +93,13 @@ function UploadCV() {
               }}
             />
           </label>
+
+          {error && (
+            <p className="mt-4 text-sm text-red-500">{error}</p>
+          )}
+          {success && (
+            <p className="mt-4 text-sm text-green-600">{success}</p>
+          )}
 
           <p className="mt-4 text-xs text-gray-400">
             <Shield size={12} className="inline mr-1" /> Your data is encrypted and secure.
@@ -86,7 +114,7 @@ function UploadCV() {
             <ArrowLeft size={14} /> Back
           </button>
           <button
-            onClick={() => navigate("/verify")}
+            onClick={handleSkip}
             className="text-gray-400 text-sm">
             Skip for now
           </button>

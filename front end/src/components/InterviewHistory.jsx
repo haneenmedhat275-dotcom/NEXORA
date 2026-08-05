@@ -39,7 +39,7 @@ export default function InterviewHistory({ rows: propRows }) {
 
       {rows.length === 0 ? (
         <div style={{ padding: '32px 0', textAlign: 'center', color: '#9E9EB0', fontSize: '14px' }}>
-          لا يوجد سجل مقابلات بعد
+          No interview records yet
         </div>
       ) : (
         rows.map((item, i) => {

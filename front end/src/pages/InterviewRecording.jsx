@@ -39,6 +39,8 @@ export default function InterviewRecording() {
   const [error, setError] = useState(null)
   const [fetchError, setFetchError] = useState(false)
   const [uploadRetry, setUploadRetry] = useState(null)
+  const [waiting, setWaiting] = useState(false)
+  const [waitTimer, setWaitTimer] = useState(30)
 
   const mediaRecorderRef = useRef(null)
   const audioChunksRef = useRef([])
@@ -305,6 +307,14 @@ export default function InterviewRecording() {
       return
     }
 
+    setWaiting(true)
+    setWaitTimer(30)
+    for (let i = 30; i > 0; i--) {
+      await new Promise(r => setTimeout(r, 1000))
+      setWaitTimer(i - 1)
+    }
+    setWaiting(false)
+
     setCurrentIndex(prev => prev + 1)
     setTimer(0)
     audioChunksRef.current = []
@@ -424,8 +434,26 @@ export default function InterviewRecording() {
           </div>
         )}
 
+        {/* Waiting overlay */}
+        {waiting && (
+          <div style={{
+            background: '#FFFFFF', borderRadius: 16, padding: '40px', marginBottom: 20,
+            textAlign: 'center', boxShadow: '0 1px 6px rgba(0,0,0,0.05)',
+          }}>
+            <div style={{ fontSize: 40, fontWeight: 700, color: '#7C3AED', marginBottom: 12 }}>
+              {waitTimer}
+            </div>
+            <p style={{ fontSize: 16, fontWeight: 600, color: '#111115', marginBottom: 4 }}>
+              Processing your answer...
+            </p>
+            <p style={{ fontSize: 13, color: '#9E9EB0' }}>
+              Please wait before the next question. The AI is analyzing your response.
+            </p>
+          </div>
+        )}
+
         {/* TWO-COLUMN LAYOUT */}
-        <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
+        <div style={{ display: waiting ? 'none' : 'flex', gap: 32, alignItems: 'flex-start' }}>
 
           {/* ═══ LEFT COLUMN (60%) ═══ */}
           <div style={{ flex: '3', display: 'flex', flexDirection: 'column', gap: 20 }}>

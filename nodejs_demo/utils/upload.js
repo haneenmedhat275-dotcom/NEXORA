@@ -36,7 +36,7 @@ const audioFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({ storage, fileFilter });
+const upload = multer({ storage, fileFilter, limits: { fileSize: 2 * 1024 * 1024 } });
 const videoUpload = multer({ storage, fileFilter: videoFilter, limits: { fileSize: 50 * 1024 * 1024 } });
 const audioUpload = multer({ storage, fileFilter: audioFilter, limits: { fileSize: 50 * 1024 * 1024 } });
 

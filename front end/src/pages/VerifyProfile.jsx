@@ -20,8 +20,12 @@ function VerifyProfile() {
   });
 
   const [newSkill, setNewSkill] = useState("");
+  const [cvSkipped, setCvSkipped] = useState(false);
 
   useEffect(() => {
+    const skipped = localStorage.getItem("nexora_cv_skipped") === "true";
+    setCvSkipped(skipped);
+    if (skipped) return;
     try {
       const raw = localStorage.getItem("nexora_cv_data");
       if (raw) {
@@ -37,7 +41,7 @@ function VerifyProfile() {
         }));
       }
     } catch {}
-  }, []);
+  }, [cvSkipped]);
 
   const update = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -56,6 +60,7 @@ function VerifyProfile() {
   const handleConfirm = async () => {
     try {
       await api.put("/auth/update-profile", {
+        name: form.name || undefined,
         age: Number(form.age) || undefined,
         yearsOfExperience: Number(form.yearsOfExperience) || undefined,
         jobRole: form.jobRole || undefined,
@@ -64,23 +69,26 @@ function VerifyProfile() {
       });
     } catch {}
     localStorage.removeItem("nexora_cv_data");
+    localStorage.removeItem("nexora_cv_skipped");
     navigate("/career-path");
   };
 
   return (
     <DashboardLayout currentStep={2}>
       <h1 className="text-3xl font-bold text-gray-900 mb-2">
-        Verify your profile data
+        {cvSkipped ? "Complete your profile" : "Verify your profile data"}
       </h1>
       <p className="text-gray-500 mb-10">
-        Confirm the details our AI extracted from your resume to build your digital twin.
+        {cvSkipped
+          ? "Fill in your details below to build your digital twin."
+          : "Confirm the details our AI extracted from your resume to build your digital twin."}
       </p>
 
       <div className="grid grid-cols-2 gap-6">
 
         <div className="flex flex-col gap-6">
 
-          <div className="border border-gray-200 rounded-2xl p-6">
+          <div className="bg-white border border-gray-200 rounded-2xl p-6">
             <h2 className="font-semibold text-gray-900 mb-5">Personal Info <Pencil size={14} className="inline" /></h2>
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>

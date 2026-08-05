@@ -24,26 +24,40 @@ const submitAnswer = async (req, res, next) => {
     }
 
     let answerText = '';
+    let aiFeedback = { score: 0, comment: '', strengths: [], weaknesses: [] };
+    let speechMetrics = null;
 
-    // If an audio file was uploaded, transcribe it
+    // If an audio file was uploaded, use Gemini for transcription + evaluation + speech metrics
     if (req.file) {
-      const transcription = await transcribeAudio(req.file.path);
-      answerText = transcription || '[Transcription failed]';
+      const result = await evaluateAnswerFromVideo(
+        question.text,
+        question.modelAnswer,
+        req.file.path
+      );
+      answerText = result.transcription || '[Transcription failed]';
+      aiFeedback = {
+        score: result.score,
+        comment: result.comment,
+        strengths: result.strengths || [],
+        weaknesses: result.weaknesses || []
+      };
+      speechMetrics = result.speechMetrics || null;
     } else {
       answerText = req.body.answerText || '';
+      const txtResult = await evaluateAnswer(
+        question.text,
+        answerText,
+        question.modelAnswer
+      );
+      aiFeedback = txtResult;
     }
-
-    const aiFeedback = await evaluateAnswer(
-      question.text,
-      answerText,
-      question.modelAnswer
-    );
 
     const answer = new Answer({
       interview: interviewId,
       question: question._id,
       answerText,
-      aiFeedback
+      aiFeedback,
+      speechMetrics
     });
 
     await answer.save();
@@ -115,4 +129,17 @@ const getAnswersByInterview = async (req, res, next) => {
   }
 };
 
-module.exports = { submitAnswer, submitVideoAnswer, getAnswersByInterview };
+const getMyAnswers = async (req, res, next) => {
+  try {
+    const interviews = await Interview.find({ user: req.user.id }).select('_id');
+    const ids = interviews.map(iv => iv._id);
+    const answers = await Answer.find({ interview: { $in: ids } })
+      .populate('question')
+      .sort({ createdAt: -1 });
+    res.status(200).json(answers);
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { submitAnswer, submitVideoAnswer, getAnswersByInterview, getMyAnswers };

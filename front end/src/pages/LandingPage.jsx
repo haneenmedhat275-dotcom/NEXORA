@@ -10,7 +10,7 @@ import section3Image from "../assets/section3.png";
 
 export default function LandingPage({ onLoginClick, onSignUpClick }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [activeLink, setActiveLink] = useState("Features");
+  const [activeLink, setActiveLink] = useState("");
   const [animateBars, setAnimateBars] = useState(false);
   const [barValues, setBarValues] = useState({ Situation: 0, Action: 0, Results: 0 });
 

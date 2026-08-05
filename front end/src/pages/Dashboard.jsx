@@ -135,6 +135,8 @@ export default function Dashboard() {
             }}>
               <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, background: 'linear-gradient(to right, #000000 45%, transparent 75%)', zIndex: 0 }} />
               <img src="/Abstract visualization.svg" alt="" style={{ position: 'absolute', right: '-60px', top: 0, height: '110%', opacity: 0.35, pointerEvents: 'none', zIndex: 0 }} />
+              <div style={{ position: 'absolute', right: '-40px', top: '-60px', width: '260px', height: '260px', borderRadius: '50%', background: 'radial-gradient(circle, #A855F7 0%, transparent 70%)', opacity: 0.35, filter: 'blur(30px)', zIndex: 0 }} />
+              <div style={{ position: 'absolute', right: '80px', bottom: '-80px', width: '220px', height: '220px', borderRadius: '50%', background: 'radial-gradient(circle, #A855F7 0%, transparent 70%)', opacity: 0.25, filter: 'blur(35px)', zIndex: 0 }} />
               <div style={{ position: 'relative', zIndex: 1 }}>
                 <h2 style={{ color: '#FFFFFF', fontSize: '28px', fontWeight: 700, marginBottom: '8px' }}>
                   {getGreeting()}, {user?.name?.split(" ")[0] || "Salma"}!
@@ -198,7 +200,7 @@ export default function Dashboard() {
             })}
           </div>
 
-          <PerformanceTrends />
+          <PerformanceTrends rows={rows} result={result} />
           <InterviewGoals rows={rows} />
           <Footer />
         </div>

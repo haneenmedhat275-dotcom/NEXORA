@@ -61,6 +61,7 @@ export default function InterviewSetup() {
   const [selectedRole, setSelectedRole] = useState(null);
   const [roleSearch, setRoleSearch] = useState('');
   const [loading, setLoading] = useState(false);
+  const [customRole, setCustomRole] = useState('');
 
   const startInterview = () => {
     setLoading(true);
@@ -175,6 +176,17 @@ export default function InterviewSetup() {
                     );
                   })}
                 </div>
+                {selectedRole === 'custom' && (
+                  <div className="mt-3">
+                    <input
+                      type="text"
+                      value={customRole}
+                      onChange={(e) => setCustomRole(e.target.value)}
+                      placeholder="Type your role... (e.g., Product Manager, Civil Engineer)"
+                      className="w-full pl-3 pr-4 py-2.5 bg-white border border-violet-400 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-violet-600 focus:ring-1 focus:ring-violet-400 transition-all"
+                    />
+                  </div>
+                )}
               </section>
               {/* Section 3 — Hardware Status & Launch */}
               <section className="mt-4">

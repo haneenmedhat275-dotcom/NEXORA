@@ -2,30 +2,53 @@ import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Filler,
 } from 'chart.js'
 import { Line } from 'react-chartjs-2'
-import { Activity, Layers, Eye } from 'lucide-react'
+import { Activity, Layers, Mic } from 'lucide-react'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler)
 
-const insights = [
-  { icon: Activity,  color: { bg: '#EEEDFE', text: '#3C3489' }, title: 'Speech Pace',      desc: 'Candidates are speaking 15% faster during technical questions. Recommend breathing prompts.' },
-  { icon: Layers,    color: { bg: '#E1F5EE', text: '#0F6E56' }, title: 'Answer Structure', desc: 'STAR method usage is up by 40% this week. Improving result clarity in reports.' },
-  { icon: Eye, color: { bg: '#E6F1FB', text: '#185FA5' }, title: 'Eye Contact', desc: 'High level of engagement detected across senior roles.' },
+const staticInsights = [
+  { icon: Activity, color: { bg: '#EEEDFE', text: '#3C3489' }, title: 'Speech Pace', desc: 'Candidates are speaking 15% faster during technical questions. Recommend breathing prompts.' },
+  { icon: Layers, color: { bg: '#E1F5EE', text: '#0F6E56' }, title: 'Answer Structure', desc: 'STAR method usage is up by 40% this week. Improving result clarity in reports.' },
+  { icon: Mic, color: { bg: '#E6F1FB', text: '#185FA5' }, title: 'Voice Confidence', desc: 'High level of engagement detected across senior roles.' },
 ]
 
-const chartData = {
-  labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-  datasets: [{
-    data: [42, 55, 48, 62, 58, 70, 75],
-    borderColor: '#534AB7',
-    borderWidth: 2,
-    pointBackgroundColor: '#534AB7',
-    tension: 0.45,
-    fill: true,
-    backgroundColor: 'rgba(83,74,183,0.07)',
-  }],
-}
+export default function PerformanceTrends({ rows = [], result = null }) {
+  const hasData = rows.length > 0
 
-export default function PerformanceTrends() {
+  // Build chart data from the latest completed interviews (up to 7)
+  const completedRows = rows.filter(r => r.status === 'Completed' && r.score != null).slice(0, 7).reverse()
+
+  const chartData = {
+    labels: hasData && completedRows.length > 0
+      ? completedRows.map((_, i) => `#${i + 1}`)
+      : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    datasets: [{
+      data: completedRows.length > 0 ? completedRows.map(r => r.score) : [0, 0, 0, 0, 0, 0, 0],
+      borderColor: '#534AB7',
+      borderWidth: 2,
+      pointBackgroundColor: '#534AB7',
+      tension: 0.45,
+      fill: true,
+      backgroundColor: 'rgba(83,74,183,0.07)',
+    }],
+  }
+
+  // Simple insights based on the current result instead of static text
+  const insights = result ? [
+    {
+      icon: Activity, color: { bg: '#EEEDFE', text: '#3C3489' }, title: 'Technical Score',
+      desc: `Your latest technical score is ${result.technicalScore}/10. ${result.technicalScore >= 6 ? 'Solid performance, keep it up.' : 'Consider reviewing core concepts more.'}`
+    },
+    {
+      icon: Layers, color: { bg: '#E1F5EE', text: '#0F6E56' }, title: 'Answer Structure',
+      desc: `Overall score ${result.overallScore}/10. ${result.overallScore >= 6 ? 'Good structure and clarity.' : 'Focus on structuring answers using STAR.'}`
+    },
+    {
+      icon: Mic, color: { bg: '#E6F1FB', text: '#185FA5' }, title: 'Voice Confidence',
+      desc: `Communication score ${result.communicationScore}/10. ${result.communicationScore >= 6 ? 'Confident and clear delivery.' : 'Practice speaking at a steady pace.'}`
+    },
+  ] : staticInsights
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 14 }}>
       <div style={{ background: '#fff', border: '0.5px solid #d0d0d0', borderRadius: 14, padding: '1.1rem 1.25rem' }}>

@@ -9,12 +9,10 @@ const { client } = require("./huggingfaceClient");
 ffmpeg.setFfmpegPath(ffmpegPath);
 ffmpeg.setFfprobePath(ffprobePath.path);
 
-// ==== إعدادات الموديلات (سهل تغييرهم من مكان واحد) ====
 const WHISPER_MODEL = "openai/whisper-large-v3";
 const EMOTION_MODEL = "ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition";
 const LLAMA_MODEL = "meta-llama/Llama-3.1-8B-Instruct";
 
-// 1) تحويل الصوت لنص (Whisper)
 const transcribeAudio = async (audioPath) => {
   try {
     const audioBuffer = fs.readFileSync(audioPath);
@@ -34,9 +32,6 @@ const transcribeAudio = async (audioPath) => {
   }
 };
 
-// 2) تحليل نبرة/مشاعر الصوت
-// ملاحظة: الموديل ده مدرب بالإنجليزي، فالنتيجة على كلام عربي ممكن تكون غير دقيقة.
-// بنستخدمها كمعلومة إضافية بس، مش أساس التقييم.
 const analyzeEmotion = async (audioPath) => {
   try {
     const audioBuffer = fs.readFileSync(audioPath);
@@ -49,7 +44,6 @@ const analyzeEmotion = async (audioPath) => {
       data: blob,
     });
 
-    // النتيجة array من {label, score} - بناخد الأعلى score
     if (Array.isArray(result) && result.length > 0) {
       const top = result.reduce((a, b) => (a.score > b.score ? a : b));
       return { label: top.label, score: top.score, all: result };
@@ -58,11 +52,10 @@ const analyzeEmotion = async (audioPath) => {
     return null;
   } catch (error) {
     console.error("Emotion Analysis Error:", error.message);
-    return null; // مش هنوقف العملية لو الخطوة دي فشلت
+    return null;
   }
 };
 
-// 3) حساب مدة الصوت بالثواني (للـ wpm)
 const getAudioDuration = (audioPath) => {
   return new Promise((resolve) => {
     ffmpeg.ffprobe(audioPath, (err, metadata) => {
@@ -75,7 +68,6 @@ const getAudioDuration = (audioPath) => {
   });
 };
 
-// استخراج الصوت من الفيديو
 const extractAudio = async (videoPath) => {
   const audioPath = videoPath.replace(path.extname(videoPath), ".mp3");
 
@@ -90,17 +82,58 @@ const extractAudio = async (videoPath) => {
   });
 };
 
-// استخراج أول JSON صحيح من نص رد الموديل
 const extractJson = (text) => {
   const match = text.match(/\{[\s\S]*\}/);
   if (!match) throw new Error("No JSON found in model response");
   return JSON.parse(match[0]);
 };
 
-// 4) تقييم نصي بس (بدون صوت) - Llama
+const emotionToTone = (label) => {
+  const map = {
+    angry: 'hesitant',
+    disgust: 'hesitant',
+    fear: 'hesitant',
+    happy: 'enthusiastic',
+    sad: 'hesitant',
+    surprise: 'enthusiastic',
+    neutral: 'neutral'
+  };
+  return map[label?.toLowerCase()] || 'neutral';
+};
+
+const clarityFromScore = (emotionScore) => {
+  if (!emotionScore) return 'moderate';
+  if (emotionScore > 0.7) return 'clear';
+  if (emotionScore > 0.4) return 'moderate';
+  return 'unclear';
+};
+
 const evaluateAnswer = async (question, studentAnswer, modelAnswer) => {
+  const cleanedAnswer = (studentAnswer || '').trim();
+  const isEmptyOrFailed =
+    cleanedAnswer === '' ||
+    cleanedAnswer === '[Transcription failed]';
+
+  if (isEmptyOrFailed) {
+    return {
+      score: 0,
+      comment: 'No answer was provided for this question.',
+      strengths: [],
+      weaknesses: ['No answer given', 'Did not attempt to respond'],
+    };
+  }
+
   try {
-    const prompt = `You are an expert interviewer. Rate this answer 0-10 and give feedback.
+    const prompt = `You are a strict expert interviewer evaluating a candidate's answer.
+
+Scoring rules you MUST follow:
+- If the student explicitly says they don't know, or gives no real technical content, score between 0-2.
+- If the student gives a partial or vague answer with minimal correct content, score between 3-5.
+- If the student gives a mostly correct answer with minor gaps, score between 6-8.
+- If the student gives a complete, accurate, well-explained answer matching the model answer, score between 9-10.
+- Do not give credit for restating the question or acknowledging the topic without providing actual content.
+- Be strict and realistic - this score reflects real interview readiness, not effort.
+
 Return ONLY JSON, no markdown, no code blocks: {"score": 0-10, "comment": "...", "strengths": ["..."], "weaknesses": ["..."]}
 Question: ${question}
 Model answer: ${modelAnswer}
@@ -127,15 +160,12 @@ Student answer: ${studentAnswer}`;
   }
 };
 
-// 5) تقييم إجابة فيديو كاملة: صوت -> نص + مشاعر -> تقييم Llama
 const evaluateAnswerFromVideo = async (question, modelAnswer, videoPath) => {
   let audioPath = "";
 
   try {
-    // استخراج الصوت من الفيديو
     audioPath = await extractAudio(videoPath);
 
-    // تشغيل التفريغ النصي وتحليل المشاعر وحساب المدة مع بعض
     const [transcription, emotion, duration] = await Promise.all([
       transcribeAudio(audioPath),
       analyzeEmotion(audioPath),
@@ -148,14 +178,18 @@ const evaluateAnswerFromVideo = async (question, modelAnswer, videoPath) => {
     const speechMetrics = {
       durationSeconds: Math.round(duration),
       wpm,
-      pauses: null, // محتاج تحليل صمت منفصل لو عايزة الرقم ده لاحقًا
+      pauses: null,
+      tone: emotion ? emotionToTone(emotion.label) : 'neutral',
+      clarity: emotion ? clarityFromScore(emotion.score) : 'moderate',
     };
 
     if (!transcription) {
       return {
         transcription: "",
         score: 1,
-        comment: "لم يتم التعرف على أي كلام في التسجيل.",
+        comment: "No speech detected in the recording.",
+        strengths: [],
+        weaknesses: ["No speech detected"],
         speechMetrics,
       };
     }
@@ -190,7 +224,6 @@ Return ONLY JSON, no markdown, no code blocks: {"score": 0-10, "comment": "...",
       strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
       weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses : [],
       speechMetrics,
-      emotion: emotion ? emotion.label : null,
     };
   } catch (error) {
     console.error("evaluateAnswerFromVideo Error:", error.message);
@@ -201,7 +234,7 @@ Return ONLY JSON, no markdown, no code blocks: {"score": 0-10, "comment": "...",
       comment: "AI unavailable for video.",
       strengths: [],
       weaknesses: [],
-      speechMetrics: { durationSeconds: 0, wpm: 0, pauses: null },
+      speechMetrics: { durationSeconds: 0, wpm: 0, pauses: null, tone: 'neutral', clarity: 'moderate' },
       error: error.message,
     };
   } finally {

@@ -121,7 +121,7 @@ const downloadReport = async (req, res, next) => {
 
     const user = await require('../models/user').findById(req.user.id);
 
-    // إنشاء الـ PDF
+    // Generate PDF
     const doc = new PDFDocument();
 
     res.setHeader('Content-Type', 'application/pdf');
@@ -129,7 +129,7 @@ const downloadReport = async (req, res, next) => {
 
     doc.pipe(res);
 
-    // المحتوى
+    // Content
     doc.fontSize(24).text('Interview Report', { align: 'center' });
     doc.moveDown();
     doc.fontSize(14).text(`Name: ${user.name}`);

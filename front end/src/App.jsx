@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Routes, Route, useNavigate } from 'react-router-dom'
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { UserProvider, useUser } from './context/UserContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import LandingPage from './pages/LandingPage'
@@ -17,10 +17,16 @@ import UploadCV from './pages/UploadCV'
 import VerifyProfile from './pages/VerifyProfile'
 import Success from './pages/Success'
 import CareerPath from './pages/CareerPath'
+import AuthCallback from './pages/AuthCallback'
+import ResetPasswordPage from './pages/ResetPasswordPage'
+import useBlockBrowserNavigation from './hooks/useBlockBrowserNavigation'
 
 function AppContent() {
   const navigate = useNavigate()
   const { user } = useUser()
+  const { pathname } = useLocation()
+
+  useBlockBrowserNavigation()
 
   useEffect(() => {
     if (!user) return;
@@ -31,6 +37,17 @@ function AppContent() {
     window.addEventListener("popstate", handler);
     return () => window.removeEventListener("popstate", handler);
   }, [user]);
+
+  useEffect(() => {
+    if (pathname === '/success' || pathname === '/interview') {
+      const handler = () => {
+        window.history.pushState(null, "", pathname);
+      };
+      window.history.pushState(null, "", pathname);
+      window.addEventListener("popstate", handler);
+      return () => window.removeEventListener("popstate", handler);
+    }
+  }, [pathname]);
 
   const sharedProps = {
     onLoginClick: () => navigate('/login'),
@@ -60,6 +77,8 @@ function AppContent() {
       <Route path="/verify" element={<P><VerifyProfile /></P>} />
       <Route path="/career-path" element={<P><CareerPath /></P>} />
       <Route path="/success" element={<P><Success /></P>} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
       <Route path="*" element={<LandingPage {...sharedProps} />} />
     </Routes>
   )
