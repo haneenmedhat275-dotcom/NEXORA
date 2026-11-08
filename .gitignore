@@ -1,2 +1,14 @@
 ﻿node_modules/
 .env
+.env.*
+!.env.example
+.postman
+postman
+front end/dist
+front end/node_modules
+nodejs_demo/node_modules
+nodejs_demo/.env
+nodejs_demo/uploads/
+nodejs_demo/server*.log
+nodejs_demo/server*.txt
+*.pdf
